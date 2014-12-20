@@ -104,8 +104,24 @@ class Range
     (`Math.abs(_end - _begin) + 1`).to_i
   end
 
-  def step(n = 1)
-    raise NotImplementedError
+  def step(step_size = 1, &block)
+    return enum_for :step, step_size unless block_given?
+
+    raise NotImplementedError if step_size.is_a?(Float)
+
+    step_size = Integer(from = step_size) rescue nil
+    raise TypeError, "no implicit conversion of #{from.class} into Integer" unless step_size.is_a?(Integer)
+
+    raise ArgumentError, "step can't be negative" if step_size < 0
+    raise ArgumentError, "step can't be 0" if step_size == 0
+
+    i = 0
+    each do |curr|
+      yield curr if i % step_size == 0
+      i += 1
+    end
+
+    self
   end
 
   def to_s
